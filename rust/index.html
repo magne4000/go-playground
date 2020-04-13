@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>GO BOOTH</title>
+    </head>
+
+<body>
+Hello
+<script src="wasm_exec.js"></script>
+
+<script>
+    const subject = Array(1000000).fill().map(() => Math.round(Math.random() * 1000000));
+
+    const multiplyJS = (subj) => {
+        const a = Array(subj.length)
+        let i = 0;
+
+        for (; i < subj.length; i++) {
+            a[i] = Math.exp(subj[i]);
+        }
+
+        return a;
+    }
+
+    if (!WebAssembly.instantiateStreaming) {
+        // polyfill
+        WebAssembly.instantiateStreaming = async (resp, importObject) => {
+            const source = await (await resp).arrayBuffer();
+            return await WebAssembly.instantiate(source, importObject);
+        };
+    }
+
+    const go = new Go();
+    let mod, inst;
+    WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then(
+        result => {
+            mod = result.module;
+            inst = result.instance;
+
+            go.run(inst).then()
+
+            const t0 = performance.now();
+            const updatedData = multiply(new Uint8Array(subject));
+            const t1 = performance.now();
+            console.log('took(go)', t1-t0, 'ms');
+
+
+            const t2 = performance.now();
+            const updatedData2 = multiplyJS(new Uint8Array(subject));
+            const t3 = performance.now();
+            console.log('took(js)', t3-t2, 'ms');
+
+            // console.log(updatedData)
+        }
+    );
+
+
+</script>
+</body>
+
+</html>
